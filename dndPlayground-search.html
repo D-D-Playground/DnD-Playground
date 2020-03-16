@@ -42,17 +42,15 @@
     <div>
         <label for="search-selection">Search under: </label>
         <select id="search-selection">
-            <option value="ability-scores">Abilities</option>
+            <option value="">-- Select --</option>
             <option value="classes">Classes</option>
             <option value="conditions">Conditions</option>
+<!--            <option value="feats">Feats</option>   //Open5e API only has 1 feat, might consider using more than one api for different search selections-->
             <option value="magicitems">Magic Items</option>
-            <option value="languages">Languages</option>
             <option value="monsters">Monsters</option>
             <option value="races">Races</option>
-            <option value="skills">Skills</option>
             <option value="spells">Spells</option>
             <option value="weapons">Weapons</option>
-            <option value="search">SEARCH</option>
         </select>
         <br>
 </div>
@@ -67,7 +65,6 @@
     </div>
 
 </div>
-
     <div id="names" class="search-results card">
         <div class="dragon"></div>
     </div>
@@ -75,27 +72,91 @@
 </div>
 <script src="https://code.jquery.com/jquery-2.2.4.js"></script>
 
+</body>
 <script>
     $(document).ready(function() {
 
         var url = 'https://api.open5e.com/';
 
+        //Map of data to pull for each selection (Classes, Spells, Magic Items, etc)
+            var fieldMap = {
+                "classes":    [
+                                {"name":"hit_dice", "label": "Hit Dice"},
+                                {"name":"prof_saving_throws", "label": "Saving Throws"},
+                                {"name":"prof_skills", "label": "Skills"},
+                                {"name":"spellcasting_ability", "label": "Spellcasting Ability"}
+                              ],
+                "conditions": [
+                                {"name":"name", "label": "Name"},
+                                {"name":"desc", "label": "Description"}
+                              ],
+                "magicitems": [
+                                {"name":"name", "label": "Name"},
+                                {"name":"type", "label": "Type"},
+                                {"name":"rarity", "label": "Rarity"},
+                                {"name":"desc", "label": "Description"}
+                              ],
+                "monsters":   [
+                                {"name":"name", "label": "Name"},
+                                {"name":"size", "label": "Size"},
+                                {"name":"alignment", "label": "Alignment"},
+                                {"name":"type", "label": "Type"},
+                                {"name":"armor_class", "label": "Armor Class"},
+                                {"name":"hit_points", "label": "Hit Points"}
+                              ],
+                "races":      [
+                                {"name":"name", "label": "Name"},
+                                {"name":"desc", "label": "Description"},
+                                {"name":"asi_desc", "label": ""},
+                                {"name":"age", "label": ""},
+                                {"name":"alignment", "label": ""},
+                                {"name":"size", "label": ""},
+                                {"name":"traits", "label": "Traits\n"}
+                              ],
+                "spells":     [
+                                {"name":"name", "label": "Name"},
+                                {"name":"components", "label": "Components"},
+                                {"name":"material", "label": "Material"},
+                                {"name":"dnd_class", "label": "Class"},
+                                {"name":"ritual", "label": "Ritual"},
+                                {"name":"desc", "label": "Description"}
+                              ],
+                "weapons":    [
+                                {"name":"name", "label": "Name"},
+                                {"name":"category", "label": "Category"},
+                                {"name":"cost", "label": "Cost"},
+                                {"name":"damage_dice", "label": "Damage Dice"},
+                                {"name":"damage_type", "label": "Damage Type"},
+                                {"name":"weight", "label": "Weight"},
+                                {"name":"properties", "label": "Properties"}
+                              ],
+
+
+            }
+
         $('#search-selection').change(function() {
+            //Get search selection and clear out current data
             var searchSelection = document.getElementById('search-selection').value.toLowerCase();
+            document.getElementById('names').innerHTML = ""; //Clear out div when search selection is updated
+            if (searchSelection == "") return;
 
             var searchString = document.getElementById('search-string').value.toLowerCase();
-           document.getElementById('search-string').value = "";
-            console.log("searchSelection", searchSelection);
+            document.getElementById('search-string').value = "";
+
+            //Call API based on search selection
             $.ajax(url + searchSelection).done(function(data) {
 
                 var results = data.results;
-                console.log(results);
-                    var namesArray = [];
+                var namesArray = [];
+
+                //Display headers all items returned from API
                 for(var i =0; i < results.length; i++) {
                     namesArray.push(results[i].name);
                     $('#names').append("<div class='linkName' id=\'" + i + "\'><h1>" + namesArray[i] + "</h1></div>"); // add the html string to the body element.
 
                 }
+
+                //Add attributes under each header
                 $("div.linkName").append(function(){
                     var sectionOne = "<div class='hit_dice newClass'><h5>" + data.results[this.id].hit_dice + "</h5></div>";
                     var sectionTwo = "<div class='hp_at_1st_level newClass'><h5>" + data.results[this.id].hp_at_1st_level + "</h5></div>";
@@ -103,7 +164,9 @@
                     $(this).append(sectionTwo); // add the html string to the body element.
                 });
 
+                //Toggle display of attributes under each header
                 $("div.linkName").click(function() {
+                console.log($(this).children());
                     $(this).children('.hit_dice').toggleClass('newClass');
                     $(this).children('.hp_at_1st_level').toggleClass('newClass');
                 });
@@ -116,5 +179,4 @@
 
 
 </script>
-</body>
 </html>
